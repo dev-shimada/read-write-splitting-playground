@@ -12,97 +12,64 @@ var (
 	ErrInvalidStatusValue = errors.New("invalid device status value")
 )
 
-// DeviceName is a value object representing a device name
-type deviceName struct {
+type DeviceName struct {
 	value string
 }
 
-// NewDeviceName creates a new DeviceName value object with validation
-func NewDeviceName(name string) (deviceName, error) {
+func NewDeviceName(name string) (DeviceName, error) {
 	if name == "" {
-		return deviceName{}, ErrEmptyDeviceName
+		return DeviceName{}, ErrEmptyDeviceName
 	}
-
 	if len(name) > 255 {
-		return deviceName{}, ErrDeviceNameTooLong
+		return DeviceName{}, ErrDeviceNameTooLong
 	}
-
-	return deviceName{value: name}, nil
+	return DeviceName{value: name}, nil
 }
 
-// Value returns the string value of the device name
-func (d deviceName) Value() string {
+func (d DeviceName) Value() string {
 	return d.value
 }
-
-// String implements the Stringer interface
-func (d deviceName) String() string {
+func (d DeviceName) String() string {
 	return d.value
 }
-
-// Equals checks if two DeviceName values are equal
-func (d deviceName) Equals(other deviceName) bool {
+func (d DeviceName) Equals(other DeviceName) bool {
 	return d.value == other.value
 }
 
-// DeviceStatus is a value object representing a device status
-type deviceStatus struct {
+type DeviceStatus struct {
 	value string
 }
 
-// Valid status constants
 const (
 	StatusActive   = "active"
 	StatusInactive = "inactive"
 )
 
-// ValidStatuses returns a list of valid device statuses
-var ValidStatuses = []string{StatusActive, StatusInactive}
-
-// NewDeviceStatus creates a new DeviceStatus value object with validation
-func NewDeviceStatus(status string) (deviceStatus, error) {
-	if !isValidStatus(status) {
-		return deviceStatus{}, fmt.Errorf("%w: %s", ErrInvalidStatusValue, status)
+func NewDeviceStatus(status string) (DeviceStatus, error) {
+	if !slices.Contains([]string{StatusActive, StatusInactive}, status) {
+		return DeviceStatus{}, fmt.Errorf("%w: %s", ErrInvalidStatusValue, status)
 	}
-	return deviceStatus{value: status}, nil
+	return DeviceStatus{value: status}, nil
 }
 
-// isValidStatus checks if the status is valid
-func isValidStatus(status string) bool {
-	return slices.Contains(ValidStatuses, status)
-}
-
-// Value returns the string value of the device status
-func (d deviceStatus) Value() string {
+func (d DeviceStatus) Value() string {
 	return d.value
 }
-
-// String implements the Stringer interface
-func (d deviceStatus) String() string {
+func (d DeviceStatus) String() string {
 	return d.value
 }
-
-// Equals checks if two DeviceStatus values are equal
-func (d deviceStatus) Equals(other deviceStatus) bool {
+func (d DeviceStatus) Equals(other DeviceStatus) bool {
 	return d.value == other.value
 }
-
-// IsActive returns true if the status is active
-func (d deviceStatus) IsActive() bool {
+func (d DeviceStatus) IsActive() bool {
 	return d.value == StatusActive
 }
-
-// IsInactive returns true if the status is inactive
-func (d deviceStatus) IsInactive() bool {
+func (d DeviceStatus) IsInactive() bool {
 	return d.value == StatusInactive
 }
-
-// Activate returns a new DeviceStatus with active status
-func (d deviceStatus) Activate() deviceStatus {
-	return deviceStatus{value: StatusActive}
+func (d DeviceStatus) Activate() DeviceStatus {
+	return DeviceStatus{value: StatusActive}
 }
-
-// Deactivate returns a new DeviceStatus with inactive status
-func (d deviceStatus) Deactivate() deviceStatus {
-	return deviceStatus{value: StatusInactive}
+func (d DeviceStatus) Deactivate() DeviceStatus {
+	return DeviceStatus{value: StatusInactive}
 }

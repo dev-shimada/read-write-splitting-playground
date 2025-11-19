@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type (
@@ -36,6 +37,20 @@ func NewDBAccessor() *DBAccessor {
 		writer: writer,
 		reader: reader,
 	}
+}
+
+func Migrate(dba *DBAccessor) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS devices (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name TEXT NOT NULL,
+		status TEXT NOT NULL,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+	);
+	`
+	_, err := dba.writer.Exec(schema)
+	return err
 }
 
 func (dba *DBAccessor) Transaction(ctx context.Context, txFunc func(context.Context) error) (err error) {
