@@ -14,17 +14,16 @@ type dbAccessor interface {
 	Query(ctx context.Context, query string, arg any) (*sqlx.Rows, error)
 }
 
-type DeviceRepository = deviceRepository
-type deviceRepository struct {
+type DeviceRepository struct {
 	db dbAccessor
 }
 
-func NewDeviceRepository(db dbAccessor) deviceRepository {
-	return deviceRepository{
+func NewDeviceRepository(db dbAccessor) DeviceRepository {
+	return DeviceRepository{
 		db: db,
 	}
 }
-func (r deviceRepository) Create(ctx context.Context, device domain.Device) (int, error) {
+func (r DeviceRepository) Create(ctx context.Context, device domain.Device) (int, error) {
 	result, err := r.db.Exec(ctx,
 		"INSERT INTO devices (name, status) VALUES (:name, :status)",
 		struct {
@@ -44,7 +43,7 @@ func (r deviceRepository) Create(ctx context.Context, device domain.Device) (int
 	}
 	return int(id), nil
 }
-func (r deviceRepository) FindByID(ctx context.Context, id int) (domain.Device, error) {
+func (r DeviceRepository) FindByID(ctx context.Context, id int) (domain.Device, error) {
 	row, err := r.db.Query(ctx,
 		"SELECT id, name, status FROM devices WHERE id = :id",
 		struct {

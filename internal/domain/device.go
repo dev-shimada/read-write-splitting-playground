@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"errors"
 	"time"
 )
@@ -8,6 +9,11 @@ import (
 var (
 	ErrDeviceNotFound = errors.New("device not found")
 )
+
+type DeviceRepository interface {
+	Create(ctx context.Context, device Device) (int, error)
+	FindByID(ctx context.Context, id int) (Device, error)
+}
 
 // Device represents a Device entity
 type Device struct {

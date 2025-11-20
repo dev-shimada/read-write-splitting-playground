@@ -4,25 +4,25 @@ import (
 	"context"
 
 	"github.com/dev-shimada/read-write-splitting-playground/internal/domain"
-	"github.com/dev-shimada/read-write-splitting-playground/internal/infrastructure/repository"
 )
 
-type DeviceInput struct {
+type DeviceUsecase struct {
+	dr domain.DeviceRepository
+}
+type DeviceAddInput struct {
 	Name   domain.DeviceName
 	Status domain.DeviceStatus
 }
-type DeviceOutput struct{}
-
-type DeviceUsecase struct {
-	dr repository.DeviceRepository
+type DeviceAddOutput struct {
+	ID int
 }
 
-func NewDeviceUsecase(dr repository.DeviceRepository) DeviceUsecase {
+func NewDeviceUsecase(dr domain.DeviceRepository) DeviceUsecase {
 	return DeviceUsecase{
 		dr: dr,
 	}
 }
-func (u DeviceUsecase) Add(input DeviceInput) (DeviceOutput, error) {
+func (u DeviceUsecase) Add(input DeviceAddInput) (DeviceAddOutput, error) {
 	device := domain.NewDevice(
 		input.Name,
 		input.Status,
@@ -30,12 +30,25 @@ func (u DeviceUsecase) Add(input DeviceInput) (DeviceOutput, error) {
 	ctx := context.Background()
 	id, err := u.dr.Create(ctx, device)
 	if err != nil {
-		return DeviceOutput{}, err
+		return DeviceAddOutput{}, err
 	}
-	if _, err := u.dr.FindByID(ctx, id); err != nil {
-		return DeviceOutput{}, err
+	return DeviceAddOutput{ID: id}, nil
+}
+
+type DeviceFindInput struct {
+	ID int
+}
+type DeviceFindOutput struct {
+	Device domain.Device
+}
+
+func (u DeviceUsecase) Find(input DeviceFindInput) (DeviceFindOutput, error) {
+	ctx := context.Background()
+	device, err := u.dr.FindByID(ctx, input.ID)
+	if err != nil {
+		return DeviceFindOutput{}, err
 	}
-	return DeviceOutput{}, nil
+	return DeviceFindOutput{Device: device}, nil
 }
 
 // type transactioner interface {
