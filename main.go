@@ -18,7 +18,7 @@ func main() {
 		panic(err)
 	}
 	dr := repository.NewDeviceRepository(db)
-	du := usecase.NewDeviceUsecase(dr)
+	du := usecase.NewDeviceUsecase(dr, db)
 	cli := presentation.NewCLI(du)
 	if err := cli.Run(); err != nil {
 		slog.Error("failed to run CLI", "error", err)

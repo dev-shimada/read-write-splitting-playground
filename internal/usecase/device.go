@@ -2,12 +2,18 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/dev-shimada/read-write-splitting-playground/internal/domain"
 )
 
+type transactioner interface {
+	Transaction(context.Context, func(context.Context) error) error
+}
+
 type DeviceUsecase struct {
-	dr domain.DeviceRepository
+	dr  domain.DeviceRepository
+	dba transactioner
 }
 type DeviceAddInput struct {
 	Name   domain.DeviceName
@@ -17,9 +23,10 @@ type DeviceAddOutput struct {
 	ID int
 }
 
-func NewDeviceUsecase(dr domain.DeviceRepository) DeviceUsecase {
+func NewDeviceUsecase(dr domain.DeviceRepository, dba transactioner) DeviceUsecase {
 	return DeviceUsecase{
-		dr: dr,
+		dr:  dr,
+		dba: dba,
 	}
 }
 func (u DeviceUsecase) Add(input DeviceAddInput) (DeviceAddOutput, error) {
@@ -28,10 +35,19 @@ func (u DeviceUsecase) Add(input DeviceAddInput) (DeviceAddOutput, error) {
 		input.Status,
 	)
 	ctx := context.Background()
-	id, err := u.dr.Create(ctx, device)
-	if err != nil {
-		return DeviceAddOutput{}, err
+
+	var id int
+	if txErr := u.dba.Transaction(ctx, func(txCtx context.Context) error {
+		var err error
+		id, err = u.dr.Create(txCtx, device)
+		if err != nil {
+			return fmt.Errorf("failed to create device: %w", err)
+		}
+		return nil
+	}); txErr != nil {
+		return DeviceAddOutput{}, fmt.Errorf("failed to add device in transaction: %w", txErr)
 	}
+
 	return DeviceAddOutput{ID: id}, nil
 }
 
